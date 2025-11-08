@@ -47,7 +47,7 @@
     <h1>Access your account</h1>
     <p class="lead">Sign in or create a new account to continue.</p>
 
-    <div class="split" style="grid-template-columns:1fr 1fr;align-items:start;">
+    <div style="max-width:480px;">
       <section>
         <h2 style="margin-top:0;">Sign in</h2>
         <form id="signin-form">
@@ -57,20 +57,10 @@
           <label>Password
             <input type="password" id="signin-password" required />
           </label>
-          <button type="submit" class="btn btn-primary" style="margin-top:8px;">Sign in</button>
-        </form>
-      </section>
-
-      <section>
-        <h2 style="margin-top:0;">Create account</h2>
-        <form id="signup-form">
-          <label>Email
-            <input type="email" id="signup-email" required />
-          </label>
-          <label>Password
-            <input type="password" id="signup-password" required />
-          </label>
-          <button type="submit" class="btn btn-secondary" style="margin-top:8px;">Sign up</button>
+          <div style="display:flex;gap:12px;margin-top:12px;align-items:center;">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+            <a href="signup.html" class="btn btn-ghost">Create account</a>
+          </div>
         </form>
       </section>
     </div>
@@ -88,7 +78,6 @@
   document.addEventListener('DOMContentLoaded', function(){
     var msg = document.getElementById('auth-msg');
     var signin = document.getElementById('signin-form');
-    var signup = document.getElementById('signup-form');
 
     function setMsg(text, isError){
       msg.textContent = text;
@@ -105,19 +94,7 @@
         if(res.error){ setMsg(res.error.message, true); return; }
         setMsg('Signed in. Redirecting...');
         handleRedirect();
-      } catch(err){ setMsg(err.message, true); }
-    });
-
-    if(signup) signup.addEventListener('submit', async function(e){
-      e.preventDefault();
-      var email = document.getElementById('signup-email').value.trim();
-      var password = document.getElementById('signup-password').value;
-      setMsg('Creating account...');
-      try {
-        var res = await window.supabase.auth.signUp({ email: email, password: password });
-        if(res.error){ setMsg(res.error.message, true); return; }
-        setMsg('Check your email to verify your account.');
-      } catch(err){ setMsg(err.message, true); }
+      } catch(err){ setMsg(err.message || 'Sign in failed', true); }
     });
   });
   </script>

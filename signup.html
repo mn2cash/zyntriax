@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create account | Zyntriax</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/supabase-client.js" defer></script>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Zyntriax</a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="store.html">Store</a>
+        <a href="contact.html" class="btn btn-primary">Contact</a>
+      </nav>
+      <div class="lang-cart">
+        <a href="cart.html" class="cart"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i><span class="cart-label">Cart</span></a>
+      </div>
+      <button class="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main class="container" style="padding:48px 0 64px;max-width:760px;">
+    <h1>Create your account</h1>
+    <p class="lead">Sign up to access account features. Already have an account? <a href="login.html">Sign in</a>.</p>
+
+    <div style="max-width:480px;">
+      <section>
+        <h2 style="margin-top:0;">Create account</h2>
+        <form id="signup-form">
+          <label>Email
+            <input type="email" id="signup-email" required />
+          </label>
+          <label>Password
+            <input type="password" id="signup-password" required />
+          </label>
+          <div style="display:flex;gap:12px;margin-top:12px;align-items:center;">
+            <button type="submit" class="btn btn-secondary">Sign up</button>
+            <a href="login.html" class="btn btn-ghost">Sign in</a>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div id="auth-msg" style="margin-top:20px;color:var(--muted);"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container legal">
+      <p>© Zyntriax. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    var msg = document.getElementById('auth-msg');
+    var signup = document.getElementById('signup-form');
+
+    function setMsg(text, isError){
+      msg.textContent = text;
+      msg.style.color = isError ? '#ff7676' : 'var(--muted)';
+    }
+
+    if(signup) signup.addEventListener('submit', async function(e){
+      e.preventDefault();
+      var email = document.getElementById('signup-email').value.trim();
+      var password = document.getElementById('signup-password').value;
+      setMsg('Creating account...');
+      try {
+        var res = await window.supabase.auth.signUp({ email: email, password: password });
+        if(res.error){ setMsg(res.error.message, true); return; }
+        setMsg('Account created. Check your email to verify your account.');
+      } catch(err){ setMsg(err.message || 'Sign up failed', true); }
+    });
+  });
+  </script>
+
+  <script src="assets/js/main.js" defer></script>
+  <script src="assets/js/auth.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script src="assets/js/particles-config.js"></script>
+</body>
+</html>

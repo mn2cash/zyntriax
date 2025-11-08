@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cart | Zyntriax</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="protected"> <!-- protected: requires auth -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Zyntriax</a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="store.html">Store</a>
+        <a href="contact.html" class="btn btn-primary">Contact</a>
+      </nav>
+      <div class="lang-cart"></div>
+      <button class="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <h1>Your cart</h1>
+        <p class="lead">Review your selections and proceed to checkout.</p>
+      </div>
+    </section>
+
+    <section class="container cart">
+      <div class="cart-items">
+        <!-- Placeholder items populated via JS -->
+        <p>Your cart is empty.</p>
+      </div>
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span><strong>£0.00</strong>
+        </div>
+        <button class="btn btn-primary" disabled>Checkout</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container legal">
+      <p>© Zyntriax. All rights reserved.</p>
+    </div>
+  </footer>
+  <script src="assets/js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/auth.js"></script>
+</body>
+</html>

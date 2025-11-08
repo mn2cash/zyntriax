@@ -1,0 +1,92 @@
+<!-- store.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Store | Zyntriax</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Zyntriax</a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="store.html" class="active">Store</a>
+        <a href="contact.html" class="btn btn-primary">Contact</a>
+      </nav>
+      <a class="cart" href="cart.html">Cart</a>
+      <button class="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  <!-- store.html -->
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Store | Zyntriax</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body class="protected"> <!-- protected: requires auth -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="index.html">Zyntriax</a>
+        <nav class="nav">
+          <a href="index.html">Home</a>
+          <a href="services.html">Services</a>
+          <a href="portfolio.html">Portfolio</a>
+          <a href="store.html" class="active">Store</a>
+          <a href="contact.html" class="btn btn-primary">Contact</a>
+        </nav>
+        <div class="lang-cart"></div>
+        <a class="cart" href="cart.html">Cart</a>
+        <button class="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="container">
+          <h1>Store</h1>
+          <p class="lead">Packages designed to fit your goals and growth stage.</p>
+        </div>
+      </section>
+
+      <section class="container grid-3 price-cards">
+        <div class="card price">
+          <h3>Starter</h3>
+          <p>Responsive single‑page site, basic SEO, contact form.</p>
+          <div class="price-row">£499</div>
+          <button class="btn btn-secondary">Add to cart</button>
+        </div>
+
+        <div class="card price featured">
+          <h3>Professional</h3>
+          <p>Multi‑page site, design system, performance tuning, on‑page SEO.</p>
+          <div class="price-row">£1,499</div>
+          <button class="btn btn-primary">Add to cart</button>
+        </div>
+
+        <div class="card price">
+          <h3>E‑commerce</h3>
+          <p>Store setup, product templates, checkout, analytics, optimization.</p>
+          <div class="price-row">£2,499</div>
+          <button class="btn btn-secondary">Add to cart</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container legal">
+        <p>© Zyntriax. All rights reserved.</p>
+      </div>
+    </footer>
+    <script src="assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js"></script>
+  </body>
+  </html>

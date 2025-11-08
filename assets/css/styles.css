@@ -44,6 +44,27 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 
 /* Keep page content above the particles canvas */
 body > *:not(#particles-js) { position: relative; z-index: 1; }
+/* Particles toggle button injected into header */
+.particles-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  width: 40px;
+  border-radius: 10px;
+  margin-left: 12px;
+  padding: 0;
+  font-size: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.particles-toggle:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.particles-toggle[aria-pressed="true"] { background: linear-gradient(90deg, rgba(109,220,255,0.12), rgba(127,96,255,0.08)); box-shadow: 0 6px 18px rgba(109,220,255,0.08); }
+.particles-toggle:focus { outline: 2px solid rgba(109,220,255,0.18); }
 
 a { color: var(--text); text-decoration: none; transition: color 0.3s ease; }
 a:hover { color: var(--primary); }

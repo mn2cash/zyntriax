@@ -25,14 +25,20 @@
       enableLineLinked = false;
     }
 
+  // determine particle colors based on current theme (light vs dark)
+  var docEl = document.documentElement || {};
+  var isLightTheme = (docEl.classList && docEl.classList.contains('theme-light')) || (document.body && document.body.classList && document.body.classList.contains('theme-light'));
+    var particleColor = isLightTheme ? '#1f2937' : '#6ddcff';
+    var linkColor = isLightTheme ? '#94a3b8' : '#7f60ff';
+
     return {
       particles: {
         number: { value: particleCount, density: { enable: true, value_area: 800 } },
-        color: { value: '#6ddcff' },
+        color: { value: particleColor },
         shape: { type: 'circle', stroke: { width: 0, color: '#000000' }, polygon: { nb_sides: 5 } },
         opacity: { value: 0.55, random: false, anim: { enable: false, speed: 1, opacity_min: 0.1, sync: false } },
         size: { value: 3, random: true, anim: { enable: false, speed: 40, size_min: 0.1, sync: false } },
-        line_linked: { enable: enableLineLinked, distance: linkDistance, color: '#7f60ff', opacity: enableLineLinked ? 0.38 : 0, width: enableLineLinked ? 1 : 0 },
+        line_linked: { enable: enableLineLinked, distance: linkDistance, color: linkColor, opacity: enableLineLinked ? 0.38 : 0, width: enableLineLinked ? 1 : 0 },
         move: { enable: true, speed: 2.2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false, attract: { enable: false, rotateX: 600, rotateY: 1200 } }
       },
       interactivity: {
@@ -123,6 +129,12 @@
     }
   }
 
+  // re-init when the theme is changed so colors stay appropriate
+  try {
+    window.addEventListener('theme:changed', function () { try { initHighLevel(); } catch (e) { /* ignore */ } });
+    window.addEventListener('theme:changed', function () { try { /* no-op duplicate for older events */ } catch (e) {} });
+  } catch (e) { }
+
   // Create a small toggle button in the header to allow users to enable/disable background animation
   function injectToggle(initialEnabled) {
     try {
@@ -140,8 +152,14 @@
       btn.title = initialEnabled ? 'Disable background animation' : 'Enable background animation';
       btn.innerHTML = initialEnabled ? '<span aria-hidden="true">✨</span>' : '<span aria-hidden="true">⚪</span>';
 
-      // Place to the right of headerInner contents
-      headerInner.appendChild(btn);
+      // Place to the right of headerInner contents (use .header-utils if present)
+      var utils = headerInner.querySelector('.header-utils');
+      if (!utils) {
+        utils = document.createElement('div');
+        utils.className = 'header-utils';
+        headerInner.appendChild(utils);
+      }
+      utils.appendChild(btn);
 
       btn.addEventListener('click', function () {
         var current = btn.getAttribute('aria-pressed') === 'true';

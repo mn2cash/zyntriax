@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script>(function(){try{var t=localStorage.getItem('zyn_theme'); if(t==='light'){document.documentElement.classList.add('theme-light');}else if(t==='dark'){document.documentElement.classList.remove('theme-light');}else if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches){document.documentElement.classList.add('theme-light');}}catch(e){}})();</script>
   <title>Contact | Zyntriax</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/styles.css" />
@@ -53,7 +54,10 @@
           Message
           <textarea name="message" rows="6" required></textarea>
         </label>
-        <button class="btn btn-primary" id="contact-submit" type="submit">Send</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-primary" id="contact-submit" type="submit">Send</button>
+          <button class="btn btn-ghost" id="live-support-btn" type="button">Live Support</button>
+        </div>
         <div id="contact-status" class="lead" style="margin-top:8px;color:var(--muted);"></div>
       </form>
 
@@ -88,7 +92,23 @@
 
   <!-- Contact form logic -->
   <script src="assets/js/contact.js"></script>
+  <script>
+    // Live Support button: set session flag and navigate to live-chat page
+    (function(){
+      try {
+        var btn = document.getElementById('live-support-btn');
+        if (btn) {
+          btn.addEventListener('click', function(){
+            try { sessionStorage.setItem('allow_live_chat', '1'); } catch(e){}
+            window.location.href = 'live-chat.html';
+          });
+        }
+      } catch (e) { console.warn(e); }
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script src="assets/js/particles-config.js"></script>
+</body>
+</html>
 </body>
 </html>

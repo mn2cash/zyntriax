@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lobby Chat</title>
+    <link rel="stylesheet" href="./styles/lobby.css" />
+  </head>
+  <body class="page">
+    <div id="toastContainer" class="toast-container"></div>
+    <div class="layout">
+      <main class="main glass">
+        <div class="topbar">
+          <h2 class="brand">ZynChat Lobby</h2>
+          <div class="session-actions">
+            <span id="currentUser" class="muted small">Loading user...</span>
+            <button id="profileBtn" class="icon-btn" title="Profile">👤</button>
+            <button id="logoutBtn" class="icon-btn" title="Logout">⏻</button>
+          </div>
+        </div>
+        <div class="search-bar">
+          <div class="search-row">
+            <input id="searchUser" type="text" placeholder="Search for user by username or email" />
+            <button id="searchBtn" class="btn ghost">Search</button>
+            <button id="newRoomBtn" class="btn ghost">New Room</button>
+          </div>
+          <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <section class="chat">
+          <div class="chat-header">
+            <div>
+              <h3 id="roomTitle">Lobby Chat</h3>
+              <p class="muted" id="roomSubtitle">Global room for everyone</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="backLobbyBtn" class="btn ghost small-btn hidden">Back to lobby</button>
+              <span class="pill">Live</span>
+            </div>
+          </div>
+          <div id="messages" class="messages"></div>
+          <div class="chat-input">
+            <input id="messageInput" type="text" placeholder="Type your message..." />
+            <button id="sendBtn" class="btn primary">Send</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="usernameModal" class="modal hidden">
+      <div class="modal-content glass">
+        <h3>Choose your username</h3>
+        <p class="muted">This will be visible to everyone.</p>
+        <input id="usernameInput" type="text" placeholder="cool_name" />
+        <p id="usernameError" class="error"></p>
+        <div class="modal-actions">
+          <button id="saveUsernameBtn" class="btn primary">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="profileModal" class="modal hidden">
+      <div class="modal-content glass">
+        <div class="modal-head">
+          <div>
+            <h3>Edit Profile</h3>
+            <p class="muted small">Update username, description, avatar, and password</p>
+          </div>
+          <button id="closeProfileBtn" class="btn ghost small-btn">Close</button>
+        </div>
+        <div class="field">
+          <label>Username</label>
+          <input id="profileUsername" type="text" placeholder="new_username" />
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea id="profileDescription" rows="2" placeholder="Say something cool"></textarea>
+        </div>
+        <div class="field">
+          <label>Profile picture</label>
+          <input id="profileAvatar" type="file" accept="image/*" />
+        </div>
+        <div class="field">
+          <label>New password (optional)</label>
+          <input id="profilePassword" type="password" placeholder="New password" />
+        </div>
+        <p id="profileError" class="error"></p>
+        <div class="modal-actions">
+          <button id="saveProfileBtn" class="btn primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="roomModal" class="modal hidden">
+      <div class="modal-content glass">
+        <div class="modal-head">
+          <div>
+            <h3>Create Room</h3>
+            <p class="muted small">Name your private room and share the join link</p>
+          </div>
+          <button id="closeRoomBtn" class="btn ghost small-btn">Close</button>
+        </div>
+        <div class="field">
+          <label>Room name</label>
+          <input id="roomNameInput" type="text" placeholder="My group chat" />
+        </div>
+        <p id="roomError" class="error"></p>
+        <div id="roomLinkWrap" class="share-box hidden">
+          <label class="muted small">Share link</label>
+          <div id="roomLink" class="share-link"></div>
+        </div>
+        <div class="modal-actions">
+          <button id="createRoomBtn" class="btn primary">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="directModal" class="modal hidden">
+      <div class="modal-content glass">
+        <div class="modal-head">
+          <div>
+            <h3 id="directTitle">Direct Message</h3>
+            <p class="muted small" id="directUserLabel"></p>
+          </div>
+          <button id="closeDirectBtn" class="btn ghost small-btn">Close</button>
+        </div>
+        <div id="directMessages" class="messages compact"></div>
+        <div class="chat-input">
+          <input id="directInput" type="text" placeholder="Type a direct message..." />
+          <button id="directSendBtn" class="btn primary">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
+
+      const supabaseUrl = 'https://cskswpxsyhdzxnmyhyzs.supabase.co'
+      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNza3N3cHhzeWhkenhubXloeXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMjUxNDcsImV4cCI6MjA4MDYwMTE0N30.xHdJiYMpRH-h2Pnp33rb3maLAg_vGwX1laMapg91pH8'
+      const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+      const messagesEl = document.getElementById('messages')
+      const messageInput = document.getElementById('messageInput')
+      const sendBtn = document.getElementById('sendBtn')
+      const searchInput = document.getElementById('searchUser')
+      const searchResults = document.getElementById('searchResults')
+      const searchBtn = document.getElementById('searchBtn')
+      const newRoomBtn = document.getElementById('newRoomBtn')
+      const usernameModal = document.getElementById('usernameModal')
+      const usernameInput = document.getElementById('usernameInput')
+      const usernameError = document.getElementById('usernameError')
+      const saveUsernameBtn = document.getElementById('saveUsernameBtn')
+      const currentUserLabel = document.getElementById('currentUser')
+      const logoutBtn = document.getElementById('logoutBtn')
+      const profileBtn = document.getElementById('profileBtn')
+      const profileModal = document.getElementById('profileModal')
+      const closeProfileBtn = document.getElementById('closeProfileBtn')
+      const profileUsername = document.getElementById('profileUsername')
+      const profileDescription = document.getElementById('profileDescription')
+      const profileAvatar = document.getElementById('profileAvatar')
+      const profilePassword = document.getElementById('profilePassword')
+      const saveProfileBtn = document.getElementById('saveProfileBtn')
+      const profileError = document.getElementById('profileError')
+      const roomModal = document.getElementById('roomModal')
+      const closeRoomBtn = document.getElementById('closeRoomBtn')
+      const roomNameInput = document.getElementById('roomNameInput')
+      const roomError = document.getElementById('roomError')
+      const createRoomBtn = document.getElementById('createRoomBtn')
+      const roomLinkWrap = document.getElementById('roomLinkWrap')
+      const roomLink = document.getElementById('roomLink')
+      const toastContainer = document.getElementById('toastContainer')
+      const directModal = document.getElementById('directModal')
+      const directMessages = document.getElementById('directMessages')
+      const directInput = document.getElementById('directInput')
+      const directSendBtn = document.getElementById('directSendBtn')
+      const directUserLabel = document.getElementById('directUserLabel')
+      const directTitle = document.getElementById('directTitle')
+      const closeDirectBtn = document.getElementById('closeDirectBtn')
+
+      let session = null
+      let profile = null
+      let directSubscription = null
+      let lobbySubscription = null
+      let roomSubscription = null
+      let activeRoomId = null
+      let activeRoomTitle = 'Lobby Chat'
+      let selectedUser = null
+
+      const styleLink = document.querySelector('link[href*="lobby.css"]')
+      console.log('Lobby CSS link found:', Boolean(styleLink))
+
+      function assertPresent (id, el) {
+        if (!el) {
+          console.error(`Missing element #${id}. Please fix linkage or ensure HTML includes it.`)
+        } else {
+          console.log(`Element #${id} loaded`)
+        }
+      }
+
+      assertPresent('messages', messagesEl)
+      assertPresent('messageInput', messageInput)
+      assertPresent('sendBtn', sendBtn)
+      assertPresent('searchUser', searchInput)
+      assertPresent('searchResults', searchResults)
+      assertPresent('searchBtn', searchBtn)
+      assertPresent('usernameModal', usernameModal)
+      assertPresent('usernameInput', usernameInput)
+      assertPresent('saveUsernameBtn', saveUsernameBtn)
+      assertPresent('currentUser', currentUserLabel)
+      assertPresent('logoutBtn', logoutBtn)
+      assertPresent('profileBtn', profileBtn)
+      assertPresent('profileModal', profileModal)
+      assertPresent('closeProfileBtn', closeProfileBtn)
+      assertPresent('profileUsername', profileUsername)
+      assertPresent('profileDescription', profileDescription)
+      assertPresent('profileAvatar', profileAvatar)
+      assertPresent('profilePassword', profilePassword)
+      assertPresent('saveProfileBtn', saveProfileBtn)
+      assertPresent('profileError', profileError)
+      assertPresent('roomModal', roomModal)
+      assertPresent('closeRoomBtn', closeRoomBtn)
+      assertPresent('roomNameInput', roomNameInput)
+      assertPresent('roomError', roomError)
+      assertPresent('createRoomBtn', createRoomBtn)
+      assertPresent('roomLinkWrap', roomLinkWrap)
+      assertPresent('roomLink', roomLink)
+      assertPresent('toastContainer', toastContainer)
+      assertPresent('directModal', directModal)
+      assertPresent('directMessages', directMessages)
+      assertPresent('directInput', directInput)
+      assertPresent('directSendBtn', directSendBtn)
+      assertPresent('directUserLabel', directUserLabel)
+      assertPresent('directTitle', directTitle)
+      assertPresent('closeDirectBtn', closeDirectBtn)
+      assertPresent('newRoomBtn', newRoomBtn)
+      assertPresent('roomTitle', roomTitle)
+      assertPresent('roomSubtitle', roomSubtitle)
+      assertPresent('backLobbyBtn', backLobbyBtn)
+
+      const formatTime = iso => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+      async function init () {
+        const { data, error } = await supabase.auth.getSession()
+        if (error || !data.session) {
+          window.location.href = 'login.html'
+          return
+        }
+        session = data.session
+        await loadUsername()
+        await fetchMessages()
+        subscribeToLobby()
+        subscribeToDirect()
+        const params = new URLSearchParams(window.location.search)
+        const roomParam = params.get('room')
+        if (roomParam) {
+          await joinRoom(roomParam)
+        }
+        currentUserLabel.textContent = profile?.username ?? profile?.email ?? 'You'
+      }
+
+      async function loadUsername () {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url, email, description')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        if (error) {
+          console.error('Profile fetch error', error)
+          return
+        }
+        if (!data) {
+          // Create profile if missing
+          const { data: created, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: session.user.id,
+              email: session.user.email
+            })
+            .select()
+            .single()
+          if (insertError) {
+            console.error('Profile insert error', insertError)
+            return
+          }
+          profile = created
+        } else {
+          profile = data
+        }
+        if (!profile.username) {
+          openUsernameModal()
+        }
+        profileUsername.value = profile.username ?? ''
+        profileDescription.value = profile.description ?? ''
+      }
+
+      function openUsernameModal () {
+        usernameModal.classList.remove('hidden')
+      }
+
+      async function saveUsername () {
+        const username = usernameInput.value.trim()
+        usernameError.textContent = ''
+        if (!username) {
+          usernameError.textContent = 'Username required.'
+          return
+        }
+        const { error } = await supabase
+          .from('profiles')
+          .update({ username })
+          .eq('id', session.user.id)
+        if (error) {
+          if (error.code === '23505') {
+            usernameError.textContent = 'Username already taken. Choose another one.'
+          } else {
+            usernameError.textContent = error.message
+          }
+          return
+        }
+        profile.username = username
+        usernameModal.classList.add('hidden')
+        currentUserLabel.textContent = username
+      }
+
+      async function saveProfile () {
+        profileError.textContent = ''
+        const newUsername = profileUsername.value.trim()
+        const description = profileDescription.value.trim()
+        const newPassword = profilePassword.value
+        let avatarUrl = profile.avatar_url
+
+        if (profileAvatar.files?.length) {
+          const file = profileAvatar.files[0]
+          const path = `avatars/${session.user.id}/${Date.now()}-${file.name}`
+          const { error: uploadError, data } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+          if (uploadError) {
+            profileError.textContent = uploadError.message
+            return
+          }
+          const { data: publicUrl } = supabase.storage.from('avatars').getPublicUrl(data.path)
+          avatarUrl = publicUrl.publicUrl
+        }
+
+        if (newPassword) {
+          const { error: pwdError } = await supabase.auth.updateUser({ password: newPassword })
+          if (pwdError) {
+            profileError.textContent = pwdError.message
+            return
+          }
+        }
+
+        const { error: updateError, data } = await supabase
+          .from('profiles')
+          .update({
+            username: newUsername || profile.username,
+            description,
+            avatar_url: avatarUrl
+          })
+          .eq('id', session.user.id)
+          .select()
+          .single()
+        if (updateError) {
+          profileError.textContent = updateError.message
+          return
+        }
+        profile = data
+        currentUserLabel.textContent = profile.username ?? profile.email ?? 'You'
+        profileModal.classList.add('hidden')
+        profilePassword.value = ''
+        if (!profile.username) openUsernameModal()
+      }
+
+      async function fetchMessages () {
+        if (activeRoomId) {
+          const { data, error } = await supabase
+            .from('room_messages')
+            .select('*')
+            .eq('room_id', activeRoomId)
+            .order('created_at', { ascending: true })
+          if (error) {
+            console.error('Room messages fetch error', error)
+            return
+          }
+          renderMessages(data ?? [])
+        } else {
+          const { data, error } = await supabase
+            .from('lobby_messages')
+            .select('*')
+            .order('created_at', { ascending: true })
+          if (error) {
+            console.error('Messages fetch error', error)
+            return
+          }
+          renderMessages(data ?? [])
+        }
+      }
+
+      function renderMessages (msgs) {
+        messagesEl.innerHTML = ''
+        msgs.forEach(msg => {
+          const div = document.createElement('div')
+          div.className = 'bubble'
+          div.innerHTML = `
+            <div class="bubble-head">
+              <span class="username">${msg.username ?? 'Anon'}</span>
+              <span class="timestamp">${formatTime(msg.created_at)}</span>
+            </div>
+            <div class="text">${msg.message ?? ''}</div>
+          `
+          messagesEl.appendChild(div)
+        })
+        messagesEl.scrollTop = messagesEl.scrollHeight
+      }
+
+      async function sendLobbyMessage () {
+        if (!profile?.username) {
+          openUsernameModal()
+          return
+        }
+        const text = messageInput.value.trim()
+        if (!text) return
+        messageInput.value = ''
+        if (activeRoomId) {
+          const { error } = await supabase.from('room_messages').insert({
+            room_id: activeRoomId,
+            sender_id: session.user.id,
+            sender_username: profile.username,
+            message: text
+          })
+          if (error) {
+            console.error('Send room message error', error)
+          }
+        } else {
+          const { error } = await supabase.from('lobby_messages').insert({
+            user_id: session.user.id,
+            username: profile.username,
+            message: text
+          })
+          if (error) {
+            console.error('Send message error', error)
+          }
+        }
+      }
+
+      function subscribeToLobby () {
+        if (lobbySubscription) {
+          void supabase.removeChannel(lobbySubscription)
+        }
+        lobbySubscription = supabase
+          .channel('lobby_messages')
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'lobby_messages' },
+            payload => {
+              if (!activeRoomId) appendMessage(payload.new)
+            }
+          )
+          .subscribe()
+      }
+
+      function appendMessage (msg) {
+        const div = document.createElement('div')
+        div.className = 'bubble'
+        div.innerHTML = `
+          <div class="bubble-head">
+            <span class="username">${msg.username ?? 'Anon'}</span>
+            <span class="timestamp">${formatTime(msg.created_at)}</span>
+          </div>
+          <div class="text">${msg.message ?? ''}</div>
+        `
+        messagesEl.appendChild(div)
+        messagesEl.scrollTop = messagesEl.scrollHeight
+      }
+
+      let searchTimeout
+      async function searchUsers (term) {
+        const q = term.trim()
+        if (!q) {
+          searchResults.innerHTML = ''
+          return
+        }
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, username, email, avatar_url')
+          .or(`username.ilike.%${q}%,email.ilike.%${q}%`)
+          .limit(10)
+        if (error) {
+          console.error('Search error', error)
+          return
+        }
+        renderSearchResults(data ?? [])
+      }
+
+      function renderSearchResults (rows) {
+        searchResults.innerHTML = ''
+        if (rows.length === 0) {
+          searchResults.innerHTML = '<p class="muted small">No users found.</p>'
+          return
+        }
+        rows.forEach(row => {
+          const item = document.createElement('div')
+          item.className = 'search-item'
+          item.innerHTML = `
+            <div class="avatar" style="background-image:url('${row.avatar_url ?? ''}')"></div>
+            <div>
+              <div class="username">${row.username ?? 'No username'}</div>
+              <div class="muted small">${row.email ?? ''}</div>
+            </div>
+          `
+          item.addEventListener('click', () => {
+            void openDirectMessage(row)
+          })
+          searchResults.appendChild(item)
+        })
+      }
+
+      async function openDirectMessage (user) {
+        selectedUser = user
+        directUserLabel.textContent = `${user.username ?? 'User'} ${user.email ? `(${user.email})` : ''}`
+        directTitle.textContent = 'Direct Message'
+        directModal.classList.remove('hidden')
+        await fetchDirectMessages()
+        subscribeToDirect()
+      }
+
+      async function fetchDirectMessages () {
+        const { data, error } = await supabase
+          .from('direct_messages')
+          .select('*')
+          .or(`and(sender_id.eq.${session.user.id},recipient_id.eq.${selectedUser?.id}),and(sender_id.eq.${selectedUser?.id},recipient_id.eq.${session.user.id})`)
+          .order('created_at', { ascending: true })
+        if (error) {
+          console.error('Fetch direct messages error', error)
+          return
+        }
+        renderDirectMessages(data ?? [])
+      }
+
+      function renderDirectMessages (msgs) {
+        directMessages.innerHTML = ''
+        msgs.forEach(msg => {
+          const div = document.createElement('div')
+          div.className = 'bubble'
+          div.innerHTML = `
+            <div class="bubble-head">
+              <span class="username">${msg.sender_id === session.user.id ? 'You' : selectedUser?.username ?? 'User'}</span>
+              <span class="timestamp">${formatTime(msg.created_at)}</span>
+            </div>
+            <div class="text">${msg.message ?? ''}</div>
+          `
+          directMessages.appendChild(div)
+        })
+        directMessages.scrollTop = directMessages.scrollHeight
+      }
+
+      function subscribeToDirect () {
+        if (directSubscription) {
+          void supabase.removeChannel(directSubscription)
+        }
+        directSubscription = supabase
+          .channel(`dm-${session.user.id}`)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'direct_messages' },
+            payload => {
+              const msg = payload.new
+              console.log('Direct message event', msg)
+              const involvesMe = msg.sender_id === session.user.id || msg.recipient_id === session.user.id
+              const involvesSelected = selectedUser && (msg.sender_id === selectedUser.id || msg.recipient_id === selectedUser.id)
+              if (involvesMe && involvesSelected) {
+                appendDirectMessage(msg)
+              } else if (involvesMe && msg.sender_id !== session.user.id) {
+                showToast(msg.sender_id, msg.sender_username ?? 'User', msg.message ?? '')
+              }
+            }
+          )
+          .subscribe()
+      }
+
+      function subscribeToRoom () {
+        if (roomSubscription) {
+          void supabase.removeChannel(roomSubscription)
+        }
+        if (!activeRoomId) return
+        roomSubscription = supabase
+          .channel(`room-${activeRoomId}`)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'room_messages', filter: `room_id=eq.${activeRoomId}` },
+            payload => {
+              appendMessage(payload.new)
+            }
+          )
+          .subscribe()
+      }
+
+      function appendDirectMessage (msg) {
+        const div = document.createElement('div')
+        div.className = 'bubble'
+        div.innerHTML = `
+          <div class="bubble-head">
+            <span class="username">${msg.sender_id === session.user.id ? 'You' : selectedUser?.username ?? 'User'}</span>
+            <span class="timestamp">${formatTime(msg.created_at)}</span>
+          </div>
+          <div class="text">${msg.message ?? ''}</div>
+        `
+        directMessages.appendChild(div)
+        directMessages.scrollTop = directMessages.scrollHeight
+      }
+
+      async function sendDirectMessage () {
+        if (!selectedUser || !directInput.value.trim()) return
+        const text = directInput.value.trim()
+        directInput.value = ''
+        const now = new Date().toISOString()
+        appendDirectMessage({
+          sender_id: session.user.id,
+          recipient_id: selectedUser.id,
+          sender_username: profile.username,
+          message: text,
+          created_at: now
+        })
+        const { error } = await supabase.from('direct_messages').insert({
+          sender_id: session.user.id,
+          recipient_id: selectedUser.id,
+          sender_username: profile.username,
+          message: text
+        })
+        if (error) console.error('Send direct message error', error)
+      }
+
+      function showToast (senderId, senderName, text) {
+        const toast = document.createElement('div')
+        toast.className = 'toast'
+        toast.innerHTML = `
+          <div class="toast-title">${senderName}</div>
+          <div class="toast-body">${text}</div>
+        `
+        const timeout = setTimeout(() => {
+          toast.remove()
+        }, 10000)
+
+        toast.addEventListener('click', () => {
+          clearTimeout(timeout)
+          toast.remove()
+          selectedUser = { id: senderId, username: senderName }
+          directUserLabel.textContent = senderName
+          directModal.classList.remove('hidden')
+          void fetchDirectMessages()
+          subscribeToDirect()
+        })
+
+        toastContainer.appendChild(toast)
+      }
+
+      async function createRoom () {
+        roomError.textContent = ''
+        roomLinkWrap.classList.add('hidden')
+        roomLink.textContent = ''
+        roomModal.classList.remove('hidden')
+        const name = roomNameInput.value.trim()
+        if (!name) {
+          roomError.textContent = 'Room name is required.'
+          return
+        }
+        const { data, error } = await supabase
+          .from('rooms')
+          .insert({ title: name })
+          .select()
+          .single()
+        if (error) {
+          roomError.textContent = 'Failed to create room: ' + error.message
+          return
+        }
+        const roomId = data.id
+        const link = `${window.location.origin}${window.location.pathname}?room=${roomId}`
+        roomLink.textContent = link
+        roomLinkWrap.classList.remove('hidden')
+        roomModal.classList.add('hidden')
+        roomNameInput.value = ''
+        setRoom(roomId, name)
+      }
+
+      function setRoom (roomId, title) {
+        activeRoomId = roomId
+        activeRoomTitle = title
+        roomTitle.textContent = title
+        roomSubtitle.textContent = 'Private room'
+        backLobbyBtn.classList.remove('hidden')
+        subscribeToRoom()
+        void fetchMessages()
+      }
+
+      async function joinRoom (roomId) {
+        const { data, error } = await supabase
+          .from('rooms')
+          .select('id, title')
+          .eq('id', roomId)
+          .single()
+        if (error) {
+          console.error('Join room fetch error', error)
+          return
+        }
+        setRoom(roomId, data.title ?? 'Private Room')
+      }
+
+      sendBtn.addEventListener('click', () => void sendLobbyMessage())
+      messageInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          void sendLobbyMessage()
+        }
+      })
+      saveUsernameBtn.addEventListener('click', () => void saveUsername())
+      searchInput.addEventListener('input', e => {
+        clearTimeout(searchTimeout)
+        searchTimeout = setTimeout(() => {
+          void searchUsers(e.target.value)
+        }, 200)
+      })
+      searchBtn.addEventListener('click', () => void searchUsers(searchInput.value))
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          void searchUsers(searchInput.value)
+        }
+      })
+      newRoomBtn.addEventListener('click', () => void createRoom())
+      closeRoomBtn.addEventListener('click', () => {
+        roomModal.classList.add('hidden')
+        roomError.textContent = ''
+        roomNameInput.value = ''
+      })
+      createRoomBtn.addEventListener('click', () => {
+        // run creation with current input value
+        void createRoom()
+      })
+      directSendBtn.addEventListener('click', () => void sendDirectMessage())
+      directInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          void sendDirectMessage()
+        }
+      })
+        closeDirectBtn.addEventListener('click', () => {
+          directModal.classList.add('hidden')
+        })
+        profileBtn.addEventListener('click', () => {
+          profileModal.classList.remove('hidden')
+        })
+      closeProfileBtn.addEventListener('click', () => {
+        profileModal.classList.add('hidden')
+      })
+      saveProfileBtn.addEventListener('click', () => void saveProfile())
+      backLobbyBtn.addEventListener('click', () => {
+        activeRoomId = null
+        roomTitle.textContent = 'Lobby Chat'
+        roomSubtitle.textContent = 'Global room for everyone'
+        backLobbyBtn.classList.add('hidden')
+        subscribeToRoom()
+        void fetchMessages()
+        const url = new URL(window.location.href)
+        url.searchParams.delete('room')
+        window.history.replaceState({}, '', url)
+      })
+      logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut()
+        window.location.href = 'login.html'
+      })
+
+      void init()
+      console.log('Lobby page initialized without errors')
+    </script>
+  </body>
+</html>
